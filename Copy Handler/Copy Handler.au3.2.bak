@@ -1,0 +1,806 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=..\ikony\MOJE\mainV2.ico
+#AutoIt3Wrapper_UseX64=y
+#AutoIt3Wrapper_Res_Description=Data Asset Management Tool
+#AutoIt3Wrapper_Res_Fileversion=0.0.0.5
+#AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
+#AutoIt3Wrapper_Res_LegalCopyright=Przemyslaw Szoka
+#AutoIt3Wrapper_Res_Language=1033
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+
+;~ #pragma compile(AutoItExecuteAllowed, True)
+
+#Region Header
+#cs ----------------------------------------------------------------------------
+
+ AutoIt Version: 3.3.12.0
+
+;to do
+
+encode buffer file 		maybe
+
+IPC stuff
+
+*move most of the msgboxes information to log instead, leave only the most critical*
+
+create the queue for multiple mcq files and save them in a separate file
+check if file with mcq files queue is present, if so, resume the job
+choose items button -  'open file' dialogue window - adds files to the listbox-dropbox
+
+on exit kill all child processes: queues slaves, ...
+add hours to the log  ->_FileWriteLog does this
+autosave log to file, append to file  ->_FileWriteLog does this
+in menu option to open log location in explorer
+log adding stuff to queue, add destinations to log either
+skip queue in case it stucks during processing
+moving a stuck task at the end of the queue
+if quit, msgbox+warnings  especially if any slave is currently busy
+tooltips in MM TV indicating paths connected to folders
+?icons, folders icons in the MM TV?
+always on top menu option
+text color in the MM TV
+info window about some unprocessed content in the queue popping after some time (1h?)
+
+ Script Function:
+	The main script window
+
+#ce ----------------------------------------------------------------------------
+#EndRegion header
+
+#Region structures description
+#cs
+queues structure:
+
+STX marker destination ENQ marker source(s) ETX marker
+
+this sequence makes a full queue record
+
+#ce
+#EndRegion structures description
+
+#region Constants
+
+;script constans
+
+Global Const $MainProgramName="DAMaT";DataAssetManagementTool
+Global Const $NullChar = Chr(0)
+Global Const $MarkerSTX = Chr(3)		;start of text marker
+Global Const $MarkerETX = Chr(4)		;end of text marker
+Global Const $MarkerENQ = Chr(5)		;end of the destination block marker
+Global Const $MM_SaveFileName = "MMPaths.dat"
+Global Const $MM_SaveFilePath =@ScriptDir & "\data\"
+Global Const $MM_SaveQueuePath =@ScriptDir & "\data\MCQ\"
+
+#endregion Constants
+
+#Region Included files
+
+#include-once
+#include <ButtonConstants.au3>
+#include <Constants.au3>
+#include <EditConstants.au3>
+#include <FileConstants.au3>				;for debug, may be useful anyways
+#include <GUIConstantsEx.au3>
+;~ #include <ListViewConstants.au3>		;delete later or maybe not
+#include <StaticConstants.au3>
+#include <TabConstants.au3>
+#include <TreeViewConstants.au3>
+#include <WindowsConstants.au3>
+#include <GuiEdit.au3>
+#include <GUIListBox.au3>
+;~ #include <GuiListView.au3>				;delete later or maybe not
+#include <GuiTreeView.au3>
+#include <Array.au3>						;for debug
+#include <File.au3>
+#include "../Functions.au3"
+#include "../Queue.au3"
+#include "../_WriteFileToTV.au3"
+
+
+#EndRegion
+
+Opt("GUICloseOnESC", 0)		;off
+Opt("GUIOnEventMode", 1)		;on
+
+#region Variables
+
+Global $SelectedItems_Path
+Global $numberOfItemsInDropbox_var=0
+Global $MAIN_TV_Array, $AUX_TV_Array
+Global $ErrorMessage=""
+Global $MM_TreeChanged=False
+Global $PID_TreeEditor
+Global $MM_Queue=0
+Global $PID_fchsrv=""
+Global $MM_ErrorNumber_Feedback=0
+Global $MM_FileNameErrorOccured_Feedback=""
+
+#endregion Variables
+
+
+
+;GUI region
+
+
+#Region ### START Koda GUI section ### Form=f:\skrypty autoita\sdi\copy handler\form1.kxf
+$Main = GUICreate("Form1", 923, 714, -1, -1, -1, BitOR($WS_EX_ACCEPTFILES,$WS_EX_WINDOWEDGE))
+$MenuItem2 = GUICtrlCreateMenu("&MenuItem2")
+$MenuItem4 = GUICtrlCreateMenuItem("MenuItem4", $MenuItem2)
+$MenuItem3 = GUICtrlCreateMenuItem("MenuItem3", $MenuItem2)
+$Menu_Edit = GUICtrlCreateMenu("&Edit")
+$Menu_MM = GUICtrlCreateMenu("Media Mover", $Menu_Edit)
+$Menu_MM_AddRemove = GUICtrlCreateMenuItem("Add/Remove...", $Menu_MM)
+$Menu_Tools = GUICtrlCreateMenu("&Tools")
+$MenuItem7 = GUICtrlCreateMenu("MenuItem7", $Menu_Tools)
+$MenuItem9 = GUICtrlCreateMenu("MenuItem9", $MenuItem7)
+$MenuItem10 = GUICtrlCreateMenuItem("MenuItem10", $MenuItem9)
+$MenuItem8 = GUICtrlCreateMenuItem("MenuItem8", $Menu_Tools)
+$Menu_Help = GUICtrlCreateMenu("&Help")
+GUISetIcon("F:\skrypty autoita\SDI\ikony\MOJE\mainV2.ico", -1)
+$ButtonChoose = GUICtrlCreateButton("Choose Items", 24, 448, 97, 33)
+$Tab1 = GUICtrlCreateTab(416, 24, 433, 393)
+$TabSheet1 = GUICtrlCreateTabItem("Media Mover")
+$Button_MM_ProcessQueue = GUICtrlCreateButton("Process queue", 736, 352, 97, 33)
+$Button_MM_AddToQueue = GUICtrlCreateButton("Add to queue", 736, 296, 97, 33)
+$TreeView_MM = GUICtrlCreateTreeView(424, 72, 273, 313, BitOR($GUI_SS_DEFAULT_TREEVIEW,$TVS_CHECKBOXES,$WS_VSCROLL))
+$TabSheet2 = GUICtrlCreateTabItem("Media Exchange")
+$TabSheet3 = GUICtrlCreateTabItem("Aspera Dropbox")
+GUICtrlCreateTabItem("")
+$Log_Output = GUICtrlCreateEdit("", 8, 528, 569, 113, BitOR($GUI_SS_DEFAULT_EDIT,$ES_READONLY))
+GUICtrlSetTip(-1, "Log")
+$ButtonExit = GUICtrlCreateButton("Exit", 752, 608, 97, 33)
+$ButtonProcessAllQueues = GUICtrlCreateButton("Process all queues", 352, 448, 113, 33)
+$ButtonClear = GUICtrlCreateButton("Clear", 224, 448, 97, 33)
+$PathList = GUICtrlCreateList("", 8, 24, 401, 396, BitOR($GUI_SS_DEFAULT_LIST,$LBS_MULTIPLESEL,$LBS_HASSTRINGS,$LBS_DISABLENOSCROLL,$LBS_EXTENDEDSEL,$WS_HSCROLL,$WS_CLIPSIBLINGS))
+GUICtrlSetTip(-1, "Drop content here")
+$PathListcontext = GUICtrlCreateContextMenu($PathList)
+$ContMenuDelete = GUICtrlCreateMenuItem("Delete", $PathListcontext)
+GUICtrlSetState(-1, $GUI_DISABLE)
+$ButtonShowAllItems = GUICtrlCreateButton("Show All items", 672, 448, 97, 33)
+Dim $Main_AccelTable[1][2] = [["{DEL}", $ContMenuDelete]]
+GUISetAccelerators($Main_AccelTable)
+GUISetState(@SW_SHOW)
+#EndRegion ### END Koda GUI section ###
+
+
+Global Const $hTreeView_MM=GUICtrlGetHandle($TreeView_MM)	;handle to MM TV
+Global Const $hPathList=GUICtrlGetHandle($PathList) 					;handle to listbox-dropbox
+
+;GUI events handling functions
+
+GUIRegisterMsg($WM_DROPFILES, "WM_DROPFILES")
+
+GUISetOnEvent($GUI_EVENT_CLOSE, "_Cancel_EV")
+GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+GUICtrlSetOnEvent($Menu_MM_AddRemove, "_Menu_MM_AddRemove_EV")
+GUICtrlSetOnEvent($Button_MM_AddToQueue, "_Button_MM_AddToQueue_EV")
+GUICtrlSetOnEvent($ButtonProcessAllQueues, "_ButtonProcessAllQueues_EV")
+GUICtrlSetOnEvent($ButtonClear, "_ButtonClear_EV")
+GUICtrlSetOnEvent($PathList, "_PathList_EV")
+GUICtrlSetOnEvent($ContMenuDelete, "_ContMenuDelete_EV")
+GUICtrlSetOnEvent($Button_MM_ProcessQueue, "_Button_MM_ProcessQueue_EV")
+;~ GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+;~ GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+;~ GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+;~ GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+;~ GUICtrlSetOnEvent($ButtonExit, "_Cancel_EV")
+
+;create queues
+
+$MM_Queue=_Queue_Create(50)	;create MM queue with initial size of 50
+
+;retrieve MM data from file and put it to the main and aux arrays
+
+_WriteFileToTV($MAIN_TV_Array, $AUX_TV_Array, $hTreeView_MM, $MM_SaveFilePath & $MM_SaveFileName, $MainProgramName)
+
+$MAIN_TV_Array=0	;main array is not used here, can be immediately freed
+
+
+;InterProcessCommunication preparation
+
+#region IPC data structures
+
+;data structure for MM queue slave
+;variables 1-5 - reserved for possible future usage
+
+$S_MM_DataStructure_tag= "char MCQFileName[25];" & _
+"int ErrorNumber;" & _
+"char FileNameErrorOccured[256];" & _
+"int ExitCommand;" & _
+"int SkipOnErrorCommand" ;& _
+;~ "int VARIABLE1;" & _
+;~ "int VARIABLE2;" & _
+;~ "int VARIABLE3;" & _
+;~ "int VARIABLE4;" & _
+;~ "int VARIABLE5"
+
+;ErrorNumber = -5 - response from slave that it received message
+;ErrorNumber = 0 - normal state
+
+$S_MM_DataStructure=DllStructCreate($S_MM_DataStructure_tag)
+
+if @error Then
+    MsgBox(0,"","Error in DllStructCreate line 230" & @error); check for any error on DllStructCreate
+    Exit
+EndIf
+
+#endregion IPC data structures
+
+;~ DllStructSetData($Structurename,"FieldName",$value) ; template
+
+; get the pointers for all structure fields
+
+$MM_MCQFileName_Pointer = DllStructGetPtr($S_MM_DataStructure,"MCQFileName")
+$MM_ErrorNumber_Pointer = DllStructGetPtr($S_MM_DataStructure,"ErrorNumber")
+$MM_FileNameErrorOccured_Pointer = DllStructGetPtr($S_MM_DataStructure,"FileNameErrorOccured")
+$MM_ExitCommand_Pointer = DllStructGetPtr($S_MM_DataStructure,"ExitCommand")
+$MM_SkipOnErrorCommand_Pointer = DllStructGetPtr($S_MM_DataStructure,"SkipOnErrorCommand")
+
+$MM_PointersString= $MM_MCQFileName_Pointer & " " & $MM_ErrorNumber_Pointer & " " & $MM_FileNameErrorOccured_Pointer & " " & $MM_ExitCommand_Pointer & _
+" " & $MM_SkipOnErrorCommand_Pointer
+
+;  Start the slave process with all the parameters:
+;   the PID of the main program
+;   the  pointers of the shared variables
+
+If FileExists(@ScriptDir & "\" & "fchsrv.exe") = 1 Then ;run compiled exe file
+
+    $PID_fchsrv = Run ("fchsrv.exe " & @AutoItPID & " " & $MM_PointersString,  @ScriptDir)
+
+Else
+
+    If FileExists(@ScriptDir & "\" & "fchsrv.au3") = 1 Then ;run au3 source file with the same conditions
+
+			 Run(@AutoItExe & ' /AutoIt3ExecuteScript ' & '"' & @ScriptDir & '\fchsrv.au3' & '"' & ' '& @AutoItPID & ' ' & $MM_PointersString)
+
+    Else
+
+;****************************************************************
+;remove below msgbox if the build version is going to be a single executable file
+;****************************************************************
+
+#Region --- CodeWizard generated code Start ---
+;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+MsgBox($MB_OK + $MB_ICONHAND + $MB_TASKMODAL,$MainProgramName,"Critical error: fchsrv.exe not found.")
+#EndRegion --- CodeWizard generated code End ---
+
+        Exit
+
+    EndIf
+
+;********************* commented for a debug purpose
+
+;~ 	If $PID_fchsrv =0 Then
+
+;~ 		#Region --- CodeWizard generated code Start ---
+;~ 		;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+;~ 		MsgBox($MB_OK + $MB_ICONHAND + $MB_TASKMODAL,$MainProgramName, "Fatal error:" & @CRLF & @CRLF & "Failed to retrieve fchsrv PID.")
+;~ 		#EndRegion --- CodeWizard generated code End ---
+
+;~ 		Exit
+
+;~ 	EndIf
+
+EndIf
+
+;****************************************************************
+
+;~ DllStructSetData($Structure,"color",0)
+;~ $NewValue = DllStructGetData($Structure,"color")
+
+
+;main program loop
+;
+;gonna add some of the InterProcessCommunication code here
+
+#Region Main
+
+While 1
+
+	Sleep (200)
+
+	;error processing
+
+	;get error messages from MM queue slave
+	$MM_ErrorNumber_Feedback=DllStructGetData($S_MM_DataStructure, "ErrorNumber")
+	$MM_FileNameErrorOccured_Feedback=DllStructGetData($S_MM_DataStructure, "FileNameErrorOccured")
+
+	;reset these two fields to default
+	DllStructSetData($S_MM_DataStructure,"ErrorNumber",0)
+	DllStructSetData($S_MM_DataStructure,"FileNameErrorOccured","")
+
+	Switch $MM_ErrorNumber_Feedback
+
+		Case 1
+
+			#Region --- CodeWizard generated code Start ---
+			;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Warning, Modality=Task Modal
+			MsgBox($MB_OK + $MB_ICONEXCLAMATION + $MB_TASKMODAL,$MainProgramName,"Data in queue passed to processing is corrupted. Record skipped.")
+			#EndRegion --- CodeWizard generated code End ---
+
+
+	EndSwitch
+
+	;reset $MM_ErrorNumber_Feedback to default
+
+	$MM_ErrorNumber_Feedback=0
+
+	;####################################
+	;some IPC here checking for feedback from queue slave
+	;####################################
+
+
+
+WEnd
+
+Exit
+
+#EndRegion
+
+#Region functions
+
+;*******************************************************************************
+
+;clears  the content of listbox (dropbox)
+Func _ButtonClear_EV()
+
+;~ 			_GUICtrlListView_DeleteAllItems ($ListView1)
+			_GUICtrlListBox_ResetContent($hPathList)
+
+			;refresh list box
+
+			_GUICtrlListBox_UpdateHScroll($hPathList)
+EndFunc
+
+;*******************************************************************************
+
+;adds current content of the listbox dropbox to MM queue
+Func _Button_MM_AddToQueue_EV()
+
+	Local $NumberOfItemsInTreeView, $counter, $IndentationLevel, $tmpCurrentItem, $ProcessedPath
+	Local $NumberOfEmptyTVSelections, $NumberOfRootsChecked
+
+	$NumberOfEmptyTVSelections=0
+	$NumberOfRootsChecked=0
+
+	If _GUICtrlListBox_GetCount ( $hPathList ) = 0 Then
+
+		#Region --- CodeWizard generated code Start ---
+		;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info, Modality=Task Modal
+		MsgBox(8256, $MainProgramName, "No items selected to copy.")
+		#EndRegion --- CodeWizard generated code End ---
+
+		Return
+
+	Else
+
+		;for every selected item in MM TV create separate package and push all of the elements of
+		;packages to the queue
+		;if root is selected do nothing!
+
+		$NumberOfItemsInTreeView=_GUICtrlTreeView_GetCount($hTreeView_MM)
+
+		$ProcessedPath=GetPathsForMMCopying($hPathList)
+
+		;start updating MM TV (unchecking selected items)
+		_GUICtrlTreeView_BeginUpdate ( $hPathList )
+
+		;search aux array for checked items
+		For $counter=0 To $NumberOfItemsInTreeView - 1
+
+			$tmpCurrentItem= $AUX_TV_Array[$counter][0]
+
+			If _GUICtrlTreeView_GetChecked ($hTreeView_MM, $tmpCurrentItem) Then
+
+				;uncheck current item in the MM TV
+				_GUICtrlTreeView_SetChecked($hTreeView_MM, $tmpCurrentItem, False)
+
+				$IndentationLevel=_GUICtrlTreeView_Level($hTreeView_MM, $tmpCurrentItem)
+
+				;check if checked item is not a root (then it is a child - item containing path to copy)
+				If $IndentationLevel=1 Then
+
+					;push to queue
+					;STX marker destination ENQ marker source(s) ETX marker
+
+					_Queue_Push($MM_Queue, $MarkerSTX)								;STX marker
+
+					_Queue_Push($MM_Queue, $AUX_TV_Array[$counter][1]) 		;destination path
+
+					_Queue_Push($MM_Queue, $MarkerENQ)								;ENQ marker
+
+					_Queue_Push($MM_Queue, $ProcessedPath)							;source
+
+					_Queue_Push($MM_Queue, $MarkerETX)								;ETX marker
+
+				Else
+					$NumberOfRootsChecked+=1 ;it is a root, increase number of selected empty roots
+
+				EndIf
+
+			Else
+				$NumberOfEmptyTVSelections+=1 ;count number of not checked  boxes
+
+			EndIf
+
+		Next
+
+		;msgbox if no destination folder was selected in MM TV
+		If $NumberOfEmptyTVSelections= $NumberOfItemsInTreeView Or $NumberOfRootsChecked <>0 Then
+
+			#Region --- CodeWizard generated code Start ---
+			;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info, Modality=Task Modal
+			MsgBox($MB_OK + $MB_ICONASTERISK + $MB_TASKMODAL,"Copy Handler","No destination folders were selected. Cannot add anything to the queue.")
+			#EndRegion --- CodeWizard generated code End ---
+
+			_GUICtrlTreeView_EndUpdate ($hPathList)
+			Return
+		EndIf
+
+		_GUICtrlEdit_AppendText($Log_Output, "Elements added to Media Mover queue" & @CRLF )
+
+	EndIf
+
+	;end of the TV update
+	_GUICtrlTreeView_EndUpdate ($hPathList)
+
+EndFunc
+
+;*******************************************************************************
+;executes processing of MM queue
+Func _Button_MM_ProcessQueue_EV()
+
+	Local $Result, $MMQueueSaveFileName, $MMQueueSaveFilePath, $SaveFileWriteResult
+
+	;check if queue is empty, if so msgbox and return
+
+	If _Queue_IsEmpty($MM_Queue) Then
+
+		#Region --- CodeWizard generated code Start ---
+		;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info
+		MsgBox($MB_OK + $MB_ICONASTERISK,$MainProgramName,"Current Media Mover queue is empty, cannot proceed.")
+		#EndRegion --- CodeWizard generated code End ---
+		Return
+
+	EndIf
+
+	;save queue to a file both for execution and restoration in case of failure of some sort
+
+	;check if save folder exist, if not then create it
+	$Result=1
+	If DirGetSize($MM_SaveQueuePath) = -1 Then $Result=DirCreate ($MM_SaveQueuePath)
+
+	If $Result =0 Then
+
+		#Region --- CodeWizard generated code Start ---
+		;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+		MsgBox($MB_OK + $MB_ICONHAND + $MB_TASKMODAL, $MainProgramName, "An undefined critical error occured during an attempt to create the following path:" & _
+		@CRLF & @CRLF & $MM_SaveQueuePath)
+		#EndRegion --- CodeWizard generated code End ---
+
+		Return
+	EndIf
+
+	$MMQueueSaveFileName= GetCurrentTimeDecimal() & ".mcq"
+
+	;saving queue to a file with generated name
+	$SaveFileWriteResult = 1
+	$MMQueueSaveFilePath=$MM_SaveQueuePath & $MMQueueSaveFileName
+
+	$SaveFileWriteResult = _FileWriteFromArray($MMQueueSaveFilePath, $MM_Queue, 0)
+
+;~ 	ConsoleWrite( $SaveFileWriteResult&@CR& @error)
+
+	Switch @error
+		Case 3
+			#Region --- CodeWizard generated code Start ---
+			;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+			MsgBox($MB_OK + $MB_ICONHAND + $MB_TASKMODAL, $MainProgramName, "Error writing current queue to file.")
+			#EndRegion --- CodeWizard generated code Start ---
+			Return
+		Case 1
+			#Region --- CodeWizard generated code Start ---
+			;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+			MsgBox($MB_OK + $MB_ICONHAND + $MB_TASKMODAL, $MainProgramName, "Error opening queue data file or path does not exist.")
+			#EndRegion --- CodeWizard generated code Start ---
+
+	EndSwitch
+
+	;add message to the log
+	_GUICtrlEdit_AppendText($Log_Output, "Queue save file created successfully" & @CRLF )
+
+	;empty current MM queue
+;~ 	_ArrayDisplay($MM_Queue)
+	_Queue_Empty($MM_Queue)
+
+	;add message to log
+	_GUICtrlEdit_AppendText($Log_Output, "Media Mover queue emptied out" & @CRLF )
+
+	;push mcq file for processing to fchsrv
+
+	While DllStructGetData($S_MM_DataStructure,"ErrorNumber") <> -5
+
+		DllStructSetData($S_MM_DataStructure,"MCQFileName",$MMQueueSaveFileName)
+
+;~ 		ConsoleWrite(DllStructGetData($S_MM_DataStructure,"ErrorNumber"))
+
+		;wait for response
+
+		Sleep (100)
+	WEnd
+
+;job acknowledged by slave, resetting ErrorNumber to it's normal value
+	DllStructSetData($S_MM_DataStructure,"ErrorNumber",0)
+
+	Sleep (50)
+
+	;add message to log
+	_GUICtrlEdit_AppendText($Log_Output, "Media Mover pushed for processing" & @CRLF )
+
+	;#############################################################
+	;code running queue execution process start here
+	;IPC
+	;#############################################################
+EndFunc
+
+;*******************************************************************************
+
+;one button to execute processing of all of the queues
+Func _ButtonProcessAllQueues_EV()
+
+	;*************************************************************
+	;MOVE TO ANOTHER PROCESS most of the code
+	;*************************************************************
+
+	;extract paths from the listview and
+	;copy files dropped on a listview
+
+	Local $ProcessedPathBuffer
+
+	If _GUICtrlListBox_GetCount ( $hPathList ) = 0 Then
+
+		#Region --- CodeWizard generated code Start ---
+		;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info, Modality=Task Modal
+		MsgBox(8256, $MainProgramName, "No selected Items to copy to Media Mover.")
+		#EndRegion --- CodeWizard generated code End ---
+
+	Else
+;~ ConsoleWrite (GetPathsForMMCopying ($PathList))
+
+;~ 		$ProcessedPathBuffer=GetPathsForMMCopying ($hPathList)		;obsolete
+		;CopyWithProgress (from, to, error)												;template
+;~ 		$result = CopyWithProgress($ProcessedPathBuffer,"F:\testW", $ErrorMessage)
+
+;~ ConsoleWrite ($result)
+
+
+;~ 		If $result Then		;from IPC!
+
+;~ 			_GUICtrlEdit_AppendText($Log_Output, "Elements copied successfully" & @CRLF )
+
+;~ 		Else
+
+;~ 			_GUICtrlEdit_AppendText($Log_Output, "An error " & $ErrorMessage & " occured: " & _
+;~ 			SHFileOperationErrDecode ($ErrorMessage) & @CRLF )
+
+;~ 			If $ErrorMessage <> 1223 Then
+
+;insert code readding to queue here
+
+				_GUICtrlEdit_AppendText($Log_Output, "Content added again to the copy queue." & @CRLF )
+;~ 			EndIf
+
+;~ 		EndIf
+
+	EndIf
+
+
+EndFunc
+
+;*******************************************************************************
+;on exit event handling
+Func _Cancel_EV()
+
+	;on exit kill all child processes: tree editor, queue slaves, ...
+
+	ProcessClose($PID_TreeEditor)
+
+	;just temporary, add proper exit command later on as this process might be busy with something
+	;flag this through IPC
+	ProcessClose($PID_fchsrv)
+
+	Sleep (200)
+	Exit
+
+EndFunc
+
+;*******************************************************************************
+
+;run Tree Editor in a separate process
+Func _Menu_MM_AddRemove_EV()
+
+;~ 	ShellExecute("child.exe", $hParent)
+
+	If @AutoItX64=1 Then
+		;run 64 bit tree editor
+		$PID_TreeEditor=Run(@ScriptDir & "\Tree Editor_x64.exe")
+	Else
+		;run 32 bit tree editor
+		$PID_TreeEditor=Run(@ScriptDir & "\Tree Editor.exe")
+	EndIf
+
+EndFunc
+
+;*********************************************************************************
+
+;deletes selected items from dropbox, in case user dragged too much
+Func _ContMenuDelete_EV()
+
+;list box acts like a stack - one element deleted and everything above it drops down one spot
+;counting backwards negates this effect, as elements are deleted now top of the stack to the bottom,
+;so they drop down, and remaining elements to remove stay in place
+
+	$numberOfItemsInDropbox_var=NumberOfSelectedItemsInDropBox ($hPathList)
+	$SelectedItems_Path = _GUICtrlListBox_GetSelItems($hPathList)
+
+		If $SelectedItems_Path[0] <> 0 Then
+			For $counter=$numberOfItemsInDropbox_var To  1 Step -1
+
+;~ ConsoleWrite ($SelectedItems_Path[0] & " " & $counter & " " & $SelectedItems_Path[$counter] & @CRLF)
+
+				_GUICtrlListBox_DeleteString($hPathList, $SelectedItems_Path[$counter])
+
+			Next
+
+		EndIf
+
+	GUICtrlSetState($ContMenuDelete, $GUI_DISABLE)
+
+EndFunc
+
+;*********************************************************************************
+
+Func _PathList_EV()
+
+;~ $SelectedItems_Path = _GUICtrlListBox_GetSelItems($PathList)
+
+	If NumberOfSelectedItemsInDropBox($hPathList) <> 0 Then GUICtrlSetState($ContMenuDelete, $GUI_ENABLE)
+	;enable context menu
+	;delete selected items
+	;disable context menu again
+
+EndFunc
+
+;*******************************************************************************************
+
+;returns formatted paths for MM copying operation
+;$hWnd stands for handle to the listbox-dropbox control
+
+Func GetPathsForMMCopying($hWnd)
+
+	Local $ProcessedPath=""
+	Local $index
+
+	For $index=0 To	_GUICtrlListBox_GetCount ( $hWnd )-1
+
+	; can copy multiple items at once, have to separate every single path with NULL (chr 0)
+		$ProcessedPath = $ProcessedPath & _GUICtrlListBox_GetText ($hWnd, $index) & $NullChar
+
+	Next
+	$ProcessedPath=$ProcessedPath & $NullChar
+
+	Return $ProcessedPath
+
+EndFunc
+
+;************************************************************************************
+
+;returns a number of selected items in the listbox dropbox
+Func NumberOfSelectedItemsInDropBox($hWnd)
+
+	Local $SelectedItems_Path = _GUICtrlListBox_GetSelItems($hWnd)
+	Return $SelectedItems_Path[0]
+
+EndFunc
+
+;*********************************************************************************
+
+;processes error codes returned by win api into an understandable text
+func SHFileOperationErrDecode($errNum)
+	Switch $errNum
+		case 113
+			return "The source and destination files are the same file."
+		case 114
+			return "Multiple file paths were specified in the source buffer, but only one destination file path."
+		case 115
+			return "Rename operation was specified but the destination path is a different directory. Use the move operation instead."
+		case 116
+			return "The source is a root directory, which cannot be moved or renamed."
+		case 117
+			return "The operation was cancelled by the user, or silently cancelled if the appropriate flags were supplied to SHFileOperation."
+		case 118
+			return "The destination is a subtree of the source."
+		case 120
+			return "Security settings denied access to the source."
+		case 121
+			return "The source or destination path exceeded or would exceed MAX_PATH."
+		case 122
+			return "The operation involved multiple destination paths, which can fail in the case of a move operation."
+		case 124
+			return "The path in the source or destination or both was invalid."
+		case 125
+			return "The source and destination have the same parent folder."
+		case 126
+			return "The destination path is an existing file."
+		case 128
+			return "The destination path is an existing folder."
+		case 129
+			return "The name of the file exceeds MAX_PATH."
+		case 130
+			return "The destination is a read-only CD-ROM, possibly unformatted."
+		case 131
+			return "The destination is a read-only DVD, possibly unformatted."
+		case 132
+			return "The destination is a writable CD-ROM, possibly unformatted."
+		case 133
+			return "The file involved in the operation is too large for the destination media or file system."
+		case 134
+			return "The source is a read-only CD-ROM, possibly unformatted."
+		case 135
+			return "The source is a read-only DVD, possibly unformatted."
+		case 136
+			return "The source is a writable CD-ROM, possibly unformatted."
+		case 183
+			return "MAX_PATH was exceeded during the operation."
+		case 1026
+			return "An unknown error occurred. This is typically due to an invalid path in the source or destination. This error does not occur on Microsoft Windows Vista and later."
+		Case 1223
+			Return "Aborted by user"
+		case 65536
+			return "An unspecified error occurred on the destination."
+		case 65652
+			return "Destination is a root directory and cannot be renamed."
+	EndSwitch
+
+	return "SHFileOperation returned errorcode " & hex($errNum) & ", which is not recognized"
+EndFunc
+
+;************************************************************************************
+
+;handles drag and drop to the listbox dropbox
+Func WM_DROPFILES($hWnd, $Msg, $wParam, $lParam)
+
+	Local $tDrop, $aRet, $iCount
+
+;string buffer for file path
+	$tDrop = DllStructCreate("char[260]")
+;get file count
+	$aRet = DllCall("shell32.dll", "int", "DragQueryFile", "hwnd", $wParam, "uint", -1, "ptr", DllStructGetPtr($tDrop), "int", DllStructGetSize($tDrop))
+	$iCount = $aRet[0]
+;get file paths
+	Local $CurInfo = GUIGetCursorInfo($Main)
+	If IsArray($CurInfo) And $CurInfo[4] = $PathList Then
+		;If IsArray($CurInfo) And $CurInfo[4] = $ListView1 Then
+
+		For $i = 0 To $iCount-1
+			$aRet = DllCall("shell32.dll", "int", "DragQueryFile","hwnd", $wParam,"uint", $i,"ptr", DllStructGetPtr($tDrop),"int", DllStructGetSize($tDrop))
+;~ 		ConsoleWrite(DllStructGetData($tDrop, 1) & @CRLF)
+;~ 			GUICtrlCreateListViewItem(DllStructGetData($tDrop, 1),$ListView1)
+			GUICtrlSetData($PathList, DllStructGetData($tDrop, 1))
+		Next
+
+		;add message to the log
+
+		_GUICtrlEdit_AppendText($Log_Output, "Elements dragged to the dropbox" & @CRLF )
+
+		;refresh HScroll of list box
+
+		_GUICtrlListBox_UpdateHScroll($PathList)
+
+	EndIf
+;finalize
+	DllCall("shell32.dll", "int", "DragFinish", "hwnd", $wParam)
+	Return
+EndFunc
+
+#EndRegion functions

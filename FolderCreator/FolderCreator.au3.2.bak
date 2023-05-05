@@ -1,0 +1,245 @@
+#Region ;**** Directives created by AutoIt3Wrapper_GUI ****
+#AutoIt3Wrapper_Icon=..\ikony\MOJE\folder 32x32_MINE.ico
+#AutoIt3Wrapper_Compile_Both=y
+#AutoIt3Wrapper_UseX64=y
+#AutoIt3Wrapper_Res_Description=Folder Creator
+#AutoIt3Wrapper_Res_Fileversion=0.0.1.1
+#AutoIt3Wrapper_Res_Fileversion_AutoIncrement=y
+#Tidy_Parameters=/gd
+#EndRegion ;**** Directives created by AutoIt3Wrapper_GUI ****
+#cs ----------------------------------------------------------------------------
+
+ AutoIt Version: 3.3.12.0
+
+ Script Function:
+	Folder Creator GUI
+
+	to do
+	status: done (almost)
+
+#ce ----------------------------------------------------------------------------
+
+;included files
+#include <MsgBoxConstants.au3>
+#include "../Functions.au3"
+
+;constans declaration
+
+Const $NumberOfZeroes_default =3
+;~ Const $Previous_Path_Key="path"		;to be deleted
+Const $NumberOfZeroes_ini="Number_Of_Zeroes_In_The_Numeric_Part_Of_The_Folder_Name_(0-10)"
+Const $IniFileName=@ScriptDir & "\cfg\" & "FolderCreator"
+Const $NumberOfZeroes_key="value"
+;~ Const $Previous_Path_Section_ini="Previous_Path"			;to be deleted
+
+;variables declaration
+
+Local $answ=0
+Local $Path_to_Generate=""
+Local $Previous_Path=""
+Local $temp=0
+Local $WholePathAndFolderNameToGenerate=""
+Local $NumberOfZeroes=0
+Local $SomeFoldersAlreadyPresent=False
+Local $NumberOfZeroesToInsert=0
+Local $count=0
+
+;arrays declaration
+
+Local $ZeroesArray [11]
+
+$ZeroesArray[0]=""
+$ZeroesArray[1]="0"
+$ZeroesArray[2]="00"
+$ZeroesArray[3]="000"
+$ZeroesArray[4]="0000"
+$ZeroesArray[5]="00000"
+$ZeroesArray[6]="000000"
+$ZeroesArray[7]="0000000"
+$ZeroesArray[8]="00000000"
+$ZeroesArray[9]="000000000"
+$ZeroesArray[10]="0000000000"
+
+
+;************************************************************************
+
+;~ CreateDirForIniFile() 	;dir for ini file created, or already exists, COMMENT LATER!!!
+
+;retrieve config values/prev values from ini file
+
+$Previous_Path=RememberLastChosenPath ("Read", $IniFileName, "")
+
+;~ IniRead( $IniFileName, $Previous_Path_Section_ini, $Previous_Path_Key, "")
+
+$NumberOfZeroes=Number (IniRead($IniFileName, $NumberOfZeroes_ini, $NumberOfZeroes_key, ""), 1)
+
+
+If $NumberOfZeroes="" Then
+	IniWrite($IniFileName, $NumberOfZeroes_ini, $NumberOfZeroes_key, $NumberOfZeroes_default)
+EndIf
+
+If $NumberOfZeroes> 10 Then $NumberOfZeroes=10
+If $NumberOfZeroes<  0 Then $NumberOfZeroes=0
+
+; create GUI, code generated, the first element on the list is the active one by default (???)
+; focus can be changed by GUICtrlSetState
+
+;input3=final, input 2=initial!
+
+#include <ButtonConstants.au3>
+#include <EditConstants.au3>
+#include <GUIConstantsEx.au3>
+#include <StaticConstants.au3>
+#include <WindowsConstants.au3>
+#Region ### START Koda GUI section ### Form=f:\skrypty autoita\sdi\foldercreator\form1gui.kxf
+$Form1 = GUICreate("Folder Creator", 431, 221, 190, 114)
+GUISetIcon("F:\skrypty autoita\SDI\ikony\MOJE\folder 32x32_MINE.ico", -1)
+$Input1 = GUICtrlCreateInput("Folder name", 8, 64, 169, 21)
+GUICtrlSetLimit(-1, 255)
+GUICtrlSetTip(-1, "Enter constant part of the name here")
+$Button1 = GUICtrlCreateButton("Path", 24, 168, 97, 33)
+GUICtrlSetTip(-1, "Specify where folders should be created")
+$Button2 = GUICtrlCreateButton("Generate", 144, 168, 97, 33)
+GUICtrlSetTip(-1, "Generate folders")
+$Button3 = GUICtrlCreateButton("Cancel", 264, 168, 97, 33)
+$Label3 = GUICtrlCreateLabel("Constant part", 8, 32, 67, 17)
+$Group1 = GUICtrlCreateGroup("Variable numeric part", 184, 24, 193, 105)
+$Label2 = GUICtrlCreateLabel("Final value", 203, 95, 55, 17)
+$Label1 = GUICtrlCreateLabel("Initial value", 203, 47, 57, 17)
+$Input2 = GUICtrlCreateInput("0", 275, 47, 89, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetTip(-1, "Numeric values only")
+$Input3 = GUICtrlCreateInput("1", 275, 95, 89, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetTip(-1, "Numeric values only")
+GUICtrlCreateGroup("", -99, -99, 1, 1)
+$Button4 = GUICtrlCreateButton("?", 384, 168, 33, 33)
+GUICtrlSetFont(-1, 8, 800, 0, "MS Sans Serif")
+GUICtrlSetTip(-1, "Help")
+GUISetState(@SW_SHOW)
+#EndRegion ### END Koda GUI section ###
+
+GUICtrlSetState($Input1, $GUI_FOCUS) ;set focus on a folder name input box
+
+;waiting for user actions; main loop
+
+While True
+	$nMsg = GUIGetMsg()
+	Switch $nMsg
+		Case $GUI_EVENT_CLOSE, $Button3 ;conditions for exit app
+			Exit
+
+		Case $Button4 ;help
+
+#Region --- CodeWizard generated code Start ---
+;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info
+$answ=MsgBox(64,"Folder Creator","Program creates a series of folders with name containing" & _
+" a constant part and a variable numeric part from specified range (initial and final values)." & _
+@CRLF & @CRLF & "Path to a place where folders need to be created have to be specified.")
+#EndRegion --- CodeWizard generated code End ---
+
+		Case $Button1		;choosing path to generate
+
+			$Path_to_Generate= FileSelectFolder("Select a folder", $Previous_Path) ;choose path to generate
+			;via win API
+
+			;save new path if it was selected
+
+			If $Path_to_Generate <>"" Then
+				$Previous_Path=$Path_to_Generate
+				RememberLastChosenPath("Write", $IniFileName, $Previous_Path)
+;~ 				IniWrite($IniFileName, $Previous_Path_Section_ini, $Previous_Path_Key, $Previous_Path)
+			EndIf
+
+		Case $Button2 ;generate
+
+			;input3=final, input 2=initial!
+
+			$InitialValue=Number(GUICtrlRead($Input2),1)
+			$FinalValue=Number(GUICtrlRead($Input3),1)
+
+			;check if path was chosen
+
+			If $Path_to_Generate= "" Then
+
+			#Region --- CodeWizard generated code Start ---
+			;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Critical, Modality=Task Modal
+			MsgBox(8208,"Folder Creator","Path to generate was not chosen! Cannot proceed.")
+			#EndRegion --- CodeWizard generated code End ---
+
+				Else
+
+				;check if final>initial, change them if not
+
+				If $InitialValue > $FinalValue then
+
+					$temp=$InitialValue
+					$InitialValue=$FinalValue
+					$FinalValue=$temp
+					$temp=0
+
+				EndIf
+
+				$ConstantPartOfFolderName=GUICtrlRead($Input1)
+
+				;loop: assemble folder name,
+				;check if this folder already exist, if yes, then skip
+				;create folder under the path
+
+				;check if path to generate has \ at the end
+
+				If StringRight($Path_to_Generate,1) <> "\" Then
+					$Path_to_Generate=$Path_to_Generate & "\"
+				EndIf
+
+				$SomeFoldersAlreadyPresent=False
+
+				For $count=$InitialValue To $FinalValue
+
+					;add zeroes in before number
+
+					$NumberOfZeroesToInsert=$NumberOfZeroes-StringLen($count)
+
+					If $NumberOfZeroesToInsert < 0 Then $NumberOfZeroesToInsert=0
+
+
+					$WholePathAndFolderNameToGenerate=$Path_to_Generate & $ConstantPartOfFolderName & $ZeroesArray[$NumberOfZeroesToInsert] & $count
+
+
+
+					If DirGetSize ($WholePathAndFolderNameToGenerate) = -1 Then
+
+						DirCreate($WholePathAndFolderNameToGenerate)
+
+					Else
+
+						$SomeFoldersAlreadyPresent=True
+
+					EndIf
+
+;~ ConsoleWrite($WholePathAndFolderNameToGenerate)
+
+				Next
+
+				If $SomeFoldersAlreadyPresent Then
+
+					#Region --- CodeWizard generated code Start ---
+					;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Warning
+					MsgBox(48,"Folder Creator","Some folder were omitted during generation because they already exist.")
+					#EndRegion --- CodeWizard generated code End ---
+
+				Else
+
+					#Region --- CodeWizard generated code Start ---
+					;MsgBox features: Title=Yes, Text=Yes, Buttons=OK, Icon=Info
+					MsgBox(64,"Folder Creator","Generation successful.")
+					#EndRegion --- CodeWizard generated code End ---
+
+				EndIf
+
+
+			EndIf
+
+
+	EndSwitch
+
+WEnd
+

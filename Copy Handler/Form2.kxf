@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="windows-1251"?>
+<object type="TAForm" name="Form2">
+	<properties>
+		<property name="Left" vt="Int16">231</property>
+		<property name="Top" vt="Int16">153</property>
+		<property name="Width" vt="Int16">385</property>
+		<property name="Height" vt="Int16">455</property>
+		<property name="Caption" vt="String">Media Mover tree editor</property>
+		<property name="Color" vt="Ident">clBtnFace</property>
+		<property name="Font.Charset" vt="Ident">DEFAULT_CHARSET</property>
+		<property name="Font.Color" vt="Ident">clWindowText</property>
+		<property name="Font.Height" vt="Int8">-11</property>
+		<property name="Font.Name" vt="String">MS Sans Serif</property>
+		<property name="Font.Style" vt="Set"/>
+		<property name="Icon.Data" vt="Binary">
+			<bin>0000010001002020000001000800A80800001600000028000000200000004000</bin>
+			<bin>0000010008000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000F4E57300F4E17300F0F0F000806FF1001CEEE400A9D4EC000F0F0F000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000000000000000000000000000000000000000000000000000000</bin>
+			<bin>0000000000000101010101010101000000000000000000000000000000000000</bin>
+			<bin>0000000000000101010101010101000000000000000000000000000000000000</bin>
+			<bin>0000000000000102000000000000000000070000000000000000000000000000</bin>
+			<bin>0000000000000102000000000000000000000000000000000000000000000000</bin>
+			<bin>0202020202020102000000000000000000000000000000000000000000000000</bin>
+			<bin>0101010101010102000000000000000000000000000000000000000000000000</bin>
+			<bin>0101010101010102000000000000000000000006060000000000000000000000</bin>
+			<bin>0102000000000102000000000000000000000606060600000000000000000000</bin>
+			<bin>0102000000000102000000000000000000000606060600000000000000000000</bin>
+			<bin>0102000000000102000000000000000000000606000005000000000000000000</bin>
+			<bin>0102000000000101010101010101000000000600050505000000000000000000</bin>
+			<bin>0102000000000101010101010101000000000005050505050000000000000000</bin>
+			<bin>0102000000000000000000000000000000000005050505050000000000000000</bin>
+			<bin>0102000000000000000000000000000000000000050505050500000000000000</bin>
+			<bin>0102000000000000000000000000000000000000050505050500000000000000</bin>
+			<bin>0102000000000000000000000000000000000000000505050505000000000000</bin>
+			<bin>0102000000000101010101010101000000000000000505050505000000000000</bin>
+			<bin>0102000000000101010101010101000000000000000005050505050000000000</bin>
+			<bin>0102000000000102000000000000000000000000000005050505050000000000</bin>
+			<bin>0102000000000102000000000000000000000000000000050500000000000000</bin>
+			<bin>0102020202020102000000000000000000000000000000050004040400000101</bin>
+			<bin>0101010101010102000000000000000000000000000000000404040404000101</bin>
+			<bin>0101010101010102000000000000000000000000000000000404040404000000</bin>
+			<bin>0000000000000102000000000000000000000000000000000004040404000000</bin>
+			<bin>0000000000000102000000000000000000000000000000000004040404000000</bin>
+			<bin>0000000000000102000000000000000000000000000000000000000000030000</bin>
+			<bin>0000000000000101010101010101000000000000000000000000000000000000</bin>
+			<bin>000000000000010101010101010100000000000000000000000000000000FFFF</bin>
+			<bin>FFFFFFFFFFFFFFFFFFFFFFFFFFFFFF00FFFFFF00FFFFFF3FEFFFFF3FE7FFC03F</bin>
+			<bin>E3FFC03FE1FFC03FE0FFCF3FE07FCF3FE07FCF3FE03FCF00E03FCF00F01FCFFF</bin>
+			<bin>F01FCFFFF80FCFFFF80FCFFFFC07CF00FC07CF00FE03CF3FFE03CF3FFF01C03F</bin>
+			<bin>FF01003FFF80003FFF80FF3FFFC0FF3FFFC0FF3FFFE0FF00FFFFFF00FFFF</bin>
+		</property>
+		<property name="OldCreateOrder" vt="False">False</property>
+		<property name="Visible" vt="True">True</property>
+		<property name="PicturePath" vt="String">F:\skrypty autoita\SDI\ikony\MOJE\TreeEdit.ico</property>
+		<property name="Style" vt="Int32">-1798701056</property>
+		<property name="ExStyle" vt="Int16">256</property>
+		<property name="Version" vt="String">1.04</property>
+		<property name="Description" vt="String">A standard Windows Form.</property>
+		<property name="FormOptOnEvent" vt="False">False</property>
+		<property name="FormOptExpVars" vt="False">False</property>
+		<property name="FormOptPopulate" vt="False">False</property>
+		<property name="FormOptVarsForSet" vt="False">False</property>
+		<property name="FormOptIndentChar" vt="Int8">0</property>
+		<property name="FormOptIndentCount" vt="Int8">1</property>
+		<property name="FormOptIndentInit" vt="Int8">0</property>
+		<property name="FormOptVarScope" vt="Int8">0</property>
+		<property name="Resizing" vt="Set"/>
+		<property name="PixelsPerInch" vt="Int8">96</property>
+		<property name="TextHeight" vt="Int8">13</property>
+	</properties>
+	<components>
+		<object type="TAContextMenu" name="ContextMenu1">
+			<properties>
+				<property name="Left" vt="Int16">248</property>
+				<property name="Top" vt="Int8">32</property>
+				<property name="Width" vt="Int8">28</property>
+				<property name="Height" vt="Int8">28</property>
+				<property name="Associate" vt="Ident">TreeView_MM_Edit</property>
+				<property name="WrappedName" vt="String">PopupMenu1</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TAButton" name="Button_Cancel">
+			<properties>
+				<property name="Left" vt="Int16">272</property>
+				<property name="Top" vt="Int16">384</property>
+				<property name="Width" vt="Int8">97</property>
+				<property name="Height" vt="Int8">33</property>
+				<property name="Caption" vt="String">Cancel</property>
+				<property name="TabOrder" vt="Int8">0</property>
+				<property name="Color" vt="Ident">clBtnFace</property>
+				<property name="CtrlStyle" vt="Int32">1342373888</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="Resizing" vt="Set">DockWidth, DockHeight</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TATreeView" name="TreeView_MM_Edit">
+			<properties>
+				<property name="Left" vt="Int8">0</property>
+				<property name="Top" vt="Int8">0</property>
+				<property name="Width" vt="Int16">233</property>
+				<property name="Height" vt="Int16">425</property>
+				<property name="Hint" vt="String">Tree data structure to edit.</property>
+				<property name="CtrlStyle" vt="Int32">1344471359</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="ContextMenu" vt="Ident">ContextMenu1</property>
+				<property name="Resizing" vt="Set"/>
+				<property name="TabOrder" vt="Int8">1</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TAButton" name="Button_Help">
+			<properties>
+				<property name="Left" vt="Int16">272</property>
+				<property name="Top" vt="Int16">168</property>
+				<property name="Width" vt="Int8">97</property>
+				<property name="Height" vt="Int8">33</property>
+				<property name="Hint" vt="String">Help</property>
+				<property name="Caption" vt="String">Help</property>
+				<property name="TabOrder" vt="Int8">2</property>
+				<property name="Color" vt="Ident">clBtnFace</property>
+				<property name="CtrlStyle" vt="Int32">1342373888</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="Resizing" vt="Set">DockWidth, DockHeight</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TAButton" name="Button_Ready">
+			<properties>
+				<property name="Left" vt="Int16">272</property>
+				<property name="Top" vt="Int16">312</property>
+				<property name="Width" vt="Int8">97</property>
+				<property name="Height" vt="Int8">33</property>
+				<property name="Hint" vt="String">Save changes to a database.</property>
+				<property name="Caption" vt="String">Save changes</property>
+				<property name="TabOrder" vt="Int8">3</property>
+				<property name="Color" vt="Ident">clBtnFace</property>
+				<property name="CtrlStyle" vt="Int32">1342373888</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="Resizing" vt="Set">DockWidth, DockHeight</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TAButton" name="Button_ShowPaths">
+			<properties>
+				<property name="Left" vt="Int16">272</property>
+				<property name="Top" vt="Int16">240</property>
+				<property name="Width" vt="Int8">97</property>
+				<property name="Height" vt="Int8">33</property>
+				<property name="Hint" vt="String">Show current state of all entries in a list form.</property>
+				<property name="Caption" vt="String">Show paths</property>
+				<property name="TabOrder" vt="Int8">4</property>
+				<property name="Color" vt="Ident">clBtnFace</property>
+				<property name="CtrlStyle" vt="Int32">1342373888</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="Resizing" vt="Set">DockWidth, DockHeight</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TAButton" name="Button1">
+			<properties>
+				<property name="Left" vt="Int16">264</property>
+				<property name="Top" vt="Int8">96</property>
+				<property name="Width" vt="Int8">105</property>
+				<property name="Height" vt="Int8">41</property>
+				<property name="Caption" vt="String">DEBUG</property>
+				<property name="TabOrder" vt="Int8">5</property>
+				<property name="Color" vt="Ident">clBtnFace</property>
+				<property name="CtrlStyle" vt="Int32">1342373888</property>
+				<property name="CtrlExStyle" vt="Int8">0</property>
+				<property name="Resizing" vt="Set">DockWidth, DockHeight</property>
+			</properties>
+			<components/>
+		</object>
+		<object type="TPopupMenu" name="PopupMenu1">
+			<properties/>
+			<components>
+				<object type="TAMenuItem" name="Menu_ChangePath">
+					<properties>
+						<property name="Caption" vt="String">Change associated path</property>
+					</properties>
+					<components/>
+				</object>
+				<object type="TAMenuItem" name="Menu_Add">
+					<properties>
+						<property name="Caption" vt="String">Add new folder</property>
+					</properties>
+					<components/>
+				</object>
+				<object type="TAMenuItem" name="MenuI_Remove">
+					<properties>
+						<property name="Caption" vt="String">Remove</property>
+					</properties>
+					<components/>
+				</object>
+				<object type="TAMenuItem" name="Menu_Separator1">
+					<properties/>
+					<components/>
+				</object>
+				<object type="TAMenuItem" name="Menu_NewRoot">
+					<properties>
+						<property name="Caption" vt="String">New root</property>
+					</properties>
+					<components/>
+				</object>
+			</components>
+		</object>
+	</components>
+</object>

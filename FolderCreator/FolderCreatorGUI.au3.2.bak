@@ -1,0 +1,53 @@
+#cs ----------------------------------------------------------------------------
+
+ AutoIt Version: 3.3.12.0
+
+ Script Function:
+	Folder Creator GUI
+
+#ce ----------------------------------------------------------------------------
+
+; Script Start - Add your code below here
+Func Create_GUI()
+#include <ButtonConstants.au3>
+#include <EditConstants.au3>
+#include <GUIConstantsEx.au3>
+#include <StaticConstants.au3>
+#include <WindowsConstants.au3>
+#Region ### START Koda GUI section ### Form=f:\skrypty autoita\sdi\foldercreator\form1gui.kxf
+$Form1 = GUICreate("Folder Creator", 431, 221, 190, 114)
+GUISetIcon("F:\skrypty autoita\SDI\ikony\MOJE\folder 32x32_MINE.ico", -1)
+$Input1 = GUICtrlCreateInput("Folder name", 8, 64, 169, 21)
+GUICtrlSetLimit(-1, 255)
+GUICtrlSetTip(-1, "Enter constant part of the name here")
+$Button1 = GUICtrlCreateButton("Path", 24, 168, 97, 33)
+GUICtrlSetTip(-1, "Specify where folders should be created")
+$Button2 = GUICtrlCreateButton("Generate", 144, 168, 97, 33)
+GUICtrlSetTip(-1, "Generate folders")
+$Button3 = GUICtrlCreateButton("Cancel", 264, 168, 97, 33)
+$Label3 = GUICtrlCreateLabel("Constant part", 8, 32, 67, 17)
+$Group1 = GUICtrlCreateGroup("Numeric part", 184, 24, 193, 105)
+$Label2 = GUICtrlCreateLabel("Final value", 203, 95, 55, 17)
+$Label1 = GUICtrlCreateLabel("Initial value", 203, 47, 57, 17)
+$Input2 = GUICtrlCreateInput("0", 275, 47, 89, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetTip(-1, "Numeric values only")
+$Input3 = GUICtrlCreateInput("1", 275, 95, 89, 21, BitOR($GUI_SS_DEFAULT_INPUT,$ES_NUMBER))
+GUICtrlSetTip(-1, "Numeric values only")
+GUICtrlCreateGroup("", -99, -99, 1, 1)
+$Button4 = GUICtrlCreateButton("?", 384, 168, 33, 33)
+GUICtrlSetFont(-1, 8, 800, 0, "MS Sans Serif")
+GUICtrlSetTip(-1, "Help")
+GUISetState(@SW_SHOW)
+#EndRegion ### END Koda GUI section ###
+
+
+EndFunc
+
+While 1
+	$nMsg = GUIGetMsg()
+	Switch $nMsg
+		Case $GUI_EVENT_CLOSE, $Button3
+			Exit
+
+	EndSwitch
+WEnd
